@@ -1,0 +1,83 @@
+---
+title: "CUNY DATA 607 - Week One"
+author: "Corey Arnouts"
+date: "August 28, 2018"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+#CUNY DATA 607 Week One Assignment
+
+mushroom <- read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", sep=",")
+
+print(head(mushroom))
+
+names(mushroom)<- c("Class", "Cap-Shape", "Cap-Surface", "Cap-Color", "Bruises", "Odor", "Gill-Attachment", "Gill-Spacing", "Gill-Size", "Gill-Color", "Stalk-Shape", "Stalk-Root", "Stalk-Surface-Above-Ring", "Stalk-Surface-Below-Ring", "Stalk-Color-Above-Ring", "Stalk-Color-Below-Ring", "Veil-Type", "Veil-Color", "Ring-Number", "Ring-Type", "Spore-Print-Color", "Population", "Habitat")
+
+print(head(mushroom))
+
+mushroom$'Class' <- as.character(mushroom$'Class')
+mushroom$`Cap-Color` <- as.character(mushroom$`Cap-Color`)
+mushroom$`Cap-Shape`<- as.character(mushroom$`Cap-Shape`)
+mushroom$`Cap-Surface` <- as.character(mushroom$`Cap-Surface`)
+mushroom$Bruises <- as.character(mushroom$Bruises)
+
+
+mushroom$'Class'[mushroom$'Class' == 'e'] <- 'Edible'
+mushroom$'Class'[mushroom$'Class' == 'p'] <- 'Poisonous'
+
+mushroom$`Cap-Shape`[mushroom$`Cap-Shape` == 'b'] <- 'Bell'
+mushroom$`Cap-Shape`[mushroom$`Cap-Shape` == 'c'] <- 'Conical'
+mushroom$`Cap-Shape`[mushroom$`Cap-Shape` == 'x'] <- 'Convex'
+mushroom$`Cap-Shape`[mushroom$`Cap-Shape` == 'f'] <- 'Flat'
+mushroom$`Cap-Shape`[mushroom$`Cap-Shape` == 'k'] <- 'Knobbed'
+mushroom[[2]][mushroom[[2]]=='s'] <-"sunken"
+
+#the above code displays two different ways to assign a new name to a value
+
+mushroom[[3]][mushroom[[3]]=='f'] <- 'fibrous'
+mushroom[[3]][mushroom[[3]]=='g'] <- 'grooves'
+mushroom[[3]][mushroom[[3]]=='y'] <- 'scaly'
+mushroom[[3]][mushroom[[3]]=='s'] <- 'smooth'
+
+mushroom[[4]][mushroom[[4]]=='n'] <- 'brown'
+mushroom[[4]][mushroom[[4]]=='b'] <- 'buff'
+mushroom[[4]][mushroom[[4]]=='c'] <- 'cinnamon'
+mushroom[[4]][mushroom[[4]]=='g'] <- 'gray'
+mushroom[[4]][mushroom[[4]]=='r'] <- 'green'
+mushroom[[4]][mushroom[[4]]=='p'] <- 'pink'
+mushroom[[4]][mushroom[[4]]=='u'] <- 'purple'
+mushroom[[4]][mushroom[[4]]=='e'] <- 'red'
+mushroom[[4]][mushroom[[4]]=='w'] <- 'white'
+mushroom[[4]][mushroom[[4]]=='y'] <- 'yellow'
+
+mushroom[[5]][mushroom[[5]]=='t'] <- 'yes'
+mushroom[[5]][mushroom[[5]]=='f'] <- 'no'
+
+mushroomsubs_set <- data.frame(mushroom$Class,mushroom[[2]],mushroom[[3]],mushroom[[4]],mushroom[[5]])
+
+names(mushroomsubs_set)<- c("Class", "Cap-Shape", "Cap-Surface", "Cap-Color", "Bruises")
+print(mushroomsubs_set)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
