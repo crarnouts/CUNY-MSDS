@@ -1,0 +1,88 @@
+---
+title: "Data 606 - Chapter 1 Intro to Data"
+author: "Corey Arnouts"
+date: "September 4, 2018"
+output: html_document
+---
+
+## Intro to Data
+1.8
+(a) each row in the matrix represents a person and some specific attributes about them such as age, sex, whether or not they smoke and when they smoke
+(b) 1691 participants were in the suvery 
+(c) sex - categorical(not ordinal), age - numerical(discrete), marital-categorical(not ordinal), gross income - categorical(ordinal), smoke - categorical(not ordinal), amt weekends/amt weekdays - numerical(discrete)
+
+1.10
+(a)Population of interest is all children aged 5 to 15, sample is 160 children in this age group
+(b)the results above most likely cannot be generalized to the population because it was probably not a random sample since the children or their parents had to volunteer for the study, the data can be used to show causal relationships though such as how the instruction offered affected the choices of the kids
+
+1.28
+(a)We can conclude that smoking more is correlated to higher likelihood of getting dementia, and it may be a contributing factor, but we must also recongize that smokers are a subset of the population that less healthy in general.
+(b)I would say that my friend most likely has the cause and effect mixed up, it would makke significantly more sense to say that childrem who are bullied are much more likeely to experience sleep disorders because of the stress put on them.
+
+1.36
+(a)This is an experiment
+(b)The treatment group is instructed to exercise twice a week and the control group is instructed not to exercise
+(c)Yes the blocking variable is the age group classifications that all of subjects were placed in
+(d)This is not a blind study since certain individuals were specifically instructed to work out while others were specially instructed to not work out
+(e)The results of the study can be used to establish a causal relationship if significant evidence is found, and the conclusions can be generalized to the general population since random sampling was used
+(f)I would have some reservations about the fact that they were aware that the study was taking place, I feel a more useful study would be if you could reliably collect data on mental health and exercise on individuals in a non experimental setting but I don't know if this is possible
+
+1.48
+see the box plot displayed below
+
+1.50
+(a)2
+(b)3
+(c)1
+
+1.56
+(a)I would assume that this housing distribution would be right skewed meaning the mean would be greater than the median, I believe this because there are a meanining ful number of homes that have very high values. The median would be a better way to display the typical observation because mean will be inflated because of all the outliers on the high end of the housing price spectrum. I would say that the interquartile range would be a better way to display the variance since there are so many houses priced exceptionally high.
+(b)I would say that the mean would be the best way to display this distribution or the median would work too really, the two should be really similar since this is such a symmetric distribution. In this circumstance I would say that standard distribution would be a perfectly acceptable way to measure this dataset's variance because it is so symmetrical.
+(c)Median would be the best way to display this right skewed distribution, because there are so many outliers on the high end. I believe that the interquartile range would be the best way to display the variance for the same reason.
+(d)I would say that the median and interquartile range would be the best way to describe this right skewed dataset
+1.70
+(a) The survival of the patients was not independent of whether or not they received treatment.
+(b) The heart transplant treatment was extremely effective on extending the lifespans of the patients
+(c) 34.78 percent with treatment survived and 88.24 percent without treatment died
+(d)(i)
+(ii)We write alive on 28 cards representing patients who were alive at
+the end of the study, and dead on 75 cards representing patients
+who were not. Then, we shuffle these cards and split them into two groups:
+one group of size 69 representing treatment, and another group of
+size 34 representing control. We calculate the difference between
+the proportion of dead cards in the treatment and control groups (treatment -
+control) and record this value. We repeat this 100 times to build a distribution
+centered at . Lastly, we calculate the fraction of simulations where
+the simulated differences in proportions are . If this fraction is low,
+we conclude that it is unlikely to have observed such an outcome by chance and
+that the null hypothesis should be rejected in favor of the alternative
+(iii) The results indicate that the transplant program is indeed effective at keeping patients alive longer
+
+```{r}
+library('DATA606')
+library(openintro)
+library(devtools)
+library(RCurl)
+library(plyr)
+data(iris)
+data(heartTr)
+testscores <- rep(c(57,66,69,71,72,73,74,77,78,78,79,79,81,81,82,83,83,88,89,94))
+
+#1.48
+data <- data.frame(scores=testscores)
+p <- ggplot(data, aes(y=scores)) + 
+  geom_boxplot()
+p
+
+
+heartTr$survived =="alive"
+Survived_with_Treatment <- length(which(heartTr$survived=="alive" & heartTr$transplant=="treatment"))
+Treatment<- length(which(heartTr$transplant=="treatment"))
+
+Treatment_surv_proportion = Survived_with_Treatment/Treatment
+
+died_with_control <- length(which(heartTr$survived=="dead" & heartTr$transplant=="control"))
+control <- length(which(heartTr$transplant=="control"))
+
+died_control_prop<- died_with_control/control
+```
