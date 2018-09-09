@@ -1,0 +1,26 @@
+---
+title: "CUNY DATA 607 Week 2 Assignment"
+author: "Corey_Arnouts"
+date: "September 9, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(RMySQL)
+library(dbConnect)
+#connect to mysql database
+con = dbConnect(MySQL(),user='root', password='ElsieLuna55!',dbname = 'sql_r', host = 'localhost')
+dbListTables(con)
+
+Query<- "select * from tbl_movie_reviews;"
+df_movie_ratings<- dbGetQuery(con,Query)
+str(df_movie_ratings)
+head(df_movie_ratings)
+```
+
