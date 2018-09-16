@@ -1,0 +1,127 @@
+---
+title: "DATA 607 Week 3 - Automated Data Collection in R"
+author: "Corey Arnouts"
+date: "September 16, 2018"
+output: html_document
+---
+#The purpose of this assignment is to gain experience extracting meaningful segments of text/numbers out of large strings
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+In the example below we are extracting the names and phone numbers out of the string let's break down the problem into it's components 
+[:alpha:] - This is the alpha class which is all alphabetic characters both lower and upper case
+[[:alpha:].,] - This piece is basically stating that we want the entire character class and we also want to add periods and commmas to it
+[[:alpha:].,]{2,} - This adds a quantifier so that the contents of the character class have to matched at least twice
+((\\d{3})?\\)? - This is how we are gathering the three digit zip code, the \\ means to extract all the d{3} means we are looking for a three digit combination and the ? represents that this part of the string combination is optional since not every phone number has a zip code
+(-| )? - This part of the string combination is looking for a dash or a space after the zip code but since not all phone numbers contain these, there is also a question mark to signify that this is optional also
+\\d{3} - this piece that comes next represents 3 required digits that come after a zip code
+(-\ )? - once again this represents a dash or space that may or may not before the last combination of digits
+\\{d}4 - represents the required last 4 digits
+\\- the double slash at the front of the combination represents the fact that we are extracting as many cases that fit this criteria as possible because there are multiple phone numbers in the string
+
+```{r}
+library(stringr)
+raw.data <- "555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555 -6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5553642Dr. Julius Hibbert"
+name <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+phone <- unlist(str_extract_all(raw.data, "\\(?(\\d{3})?\\)?(-| )?\\d{3}(-| )?\\d{4}"))
+
+name
+phone
+```
+#3
+#First Name, Last Name, Title, Second Name
+#First Name
+[.,] [[:alpha:]]{2,}$|[[:alpha:]]{2,} - this is basically stating that the first name vector will either begin or a ., or it will be the beginning of the of the character sequence
+#Last Name
+
+#title
+"[[:alpha:]]{2,}\\." - This represents any character string that ends with a period
+
+#Second Name
+
+```{r}
+firstNames_1 = unlist(str_extract_all(name, "[.,] [[:alpha:]]{2,}$|[[:alpha:]]{2,} "))
+firstNames = unlist(str_extract_all(firstNames_1, "[[:alpha:]]{2,}"))
+firstNames
+
+lastNames_1 = unlist(str_extract_all(name, "[^[.,]] [[:alpha:]]{2,}$|[[:alpha:]]{2,}, "))
+lastNames = unlist(str_extract_all(lastNames_1, "[[:alpha:]]{2,}"))
+lastNames
+
+titles = unlist(str_extract_all(name, "[[:alpha:]]{2,}\\."))
+titles
+logic_title = str_detect(name, "[[:alpha:]]{2,}\\.")
+logic_title 
+
+logicalSecondName<-str_detect(name," [:alpha:]{1}[.]|:alpha:]{1}| [:alpha:] ")
+logicalSecondName
+```
+#4
+#At least one digit between 0 and 9 followed by a $
+
+#Between 1 to 4 occurences of any lower case letter that performs whole word search
+
+#Any optional pattern that starts with any character including space and ends with .txt
+
+#Any 2 digits followed by a forward slash then any 2 digits followed by a forward slash and then any 4 digit number
+
+#Any pattern that matches a html/xml markup with open and closing tags
+```{r}
+#At least one digit between 0 and 9 followed by a dollar sign
+string_1 = c("01$", "580493$", "73837$doesthiswork", "yesitdoes1$564445", "1$234")
+str_detect(string_1, "[0-9]+\\$")
+
+#Between 1 to 4 occurrences of any lower case letter a thru z that performs whole word only search
+string_2 = c("a","ab","abc","abcd","abcz")
+str_detect(string_2,"\\b[a-z]{1,4}\\b")
+
+#any pattern that starts with any character and ends with .txt
+string_3 = c("corey.txt", ".txt", "dsdbsdbds .txt", "555.txt")
+str_detect(string_3, ".*?\\.txt$")
+
+#Any 2 digits followed by a forward slash then any 2 digits followed by a forward slash and then any 4 digit number
+string_4 = c("09/16/2018", "04/11/1994")
+str_detect(string_4, "\\d{2}/\\d{2}/\\d{4}")
+
+#Any pattern that matches a html/xml markup with open and closing tags
+string_5 = c("<html>R IS FUN</html>")
+str_detect(string_5, "<(.+?)>.+?</\\1>")
+```
+#9
+#extra credit
+```{r}
+secret_msg = "clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0TanwoUwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigOd6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr"
+
+
+digit = unlist(str_extract_all(secret_msg, "[[:digit:].! ]"))
+lower = unlist(str_extract_all(secret_msg, "[[:lower:].! ]"))
+upper = unlist(str_extract_all(secret_msg, "[[:upper:].! ]"))
+alpha = unlist(str_extract_all(secret_msg, "[[:alpha:].! ]"))
+alnum = unlist(str_extract_all(secret_msg, "[[:alnum:].! ]"))
+punct = unlist(str_extract_all(secret_msg, "[[:punct:].! ]"))
+graph = unlist(str_extract_all(secret_msg, "[[:graph:].! ]"))
+blank = unlist(str_extract_all(secret_msg, "[[:blank:].! ]"))
+space = unlist(str_extract_all(secret_msg, "[[:space:].! ]"))
+print = unlist(str_extract_all(secret_msg, "[[:print:].! ]"))
+
+digit
+lower
+upper
+alpha
+alnum
+punct
+graph
+blank
+space
+print
+
+shortened = paste(upper, collapse="")
+
+shortened
+
+```
+
