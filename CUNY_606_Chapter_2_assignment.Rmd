@@ -1,0 +1,111 @@
+---
+title: "CUNY 606 - Chapter 2 Assignment"
+author: "Corey Arnouts"
+date: "September 23, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Chapter 2 - Probability 
+#Practice: 2.5, 2.7, 2.19, 2.29, 2.43
+#Graded: 2.6, 2.8, 2.20, 2.30, 2.38, 2.44
+
+#2.6
+(a) 0%
+(b) 1/9
+(c) 1/36
+
+#2.8
+(a) No they are not disjoint Entities they can both happen at the same time 
+(b) see below
+(c)10.2%
+(d)30.9%
+(e)71.1%
+(f)No they are not independent if someone speaks a foreign language then they have a 20.2% (4.2/20.7) chance of being in poverty where the general probability that someone is in poverty is 14.6%.
+
+```{r}
+#2.8b
+library(VennDiagram)
+# A simple two-set diagram
+venn.plot <- draw.pairwise.venn(14.4, 20.7, 4.2, c("Poverty", "Foreign Lang."));
+grid.draw(venn.plot);
+grid.newpage();
+
+```
+
+#2.20
+#a)
+The probability that at least the male or the female has blue eyes would be the complement of the probability that neither of them have blue eyes, the probability of neither of them having blue eyes would be 44.1% X 47.1% = 20.7%, therefore the probability that at least one has blue eyes is 79.3%
+
+#b)
+68.4% chance that a male with blue eyes also has a partner with blue eyes
+
+#c)
+35.2% chance that a brown eyed male has a blue eyed partner 
+30.5% chance that a green eyed male has a blue eyed partner
+
+#d)
+it seems that there is some level of dependency between the eye colors of the partners or else the probability of a partner having a certain eye color would remain the same across all possibilities. 
+
+#2.30
+#a) 
+The probability of drawing a hardcover book first is 29.5% then drawing a paperwork fiction would be 63% so the probability of doing both would be 18.5%
+
+#b)
+Probability of drawing a ficiton book first is 75.7% and the probability of drawing a hardcover book second is 29.7% so thath probability of doing both is 22.5%
+
+#c)
+the probability of the above scenario with replacement would be 22.3% so very similar
+#d)
+The answers to the two questions above are very similar because the replacement has very little effect since only one record is being replaced or not being replaced and the sample size is large enough so the replacement has a negilable effect
+
+#2.38
+```{r}
+FirstBagCost <- 25
+SecondBagCost <- 35
+
+ZeroBagPercentage <- .54
+OneBagPercentage <- .34
+TwoBagPercentage <- .12
+
+
+
+BagCost_0 <- rep(0, each = 54, length.out = 54)
+BagCost_1 <- rep(25, each = 34, length.out = 34)
+BagCost_2 <- rep(35, each = 12, length.out = 12)
+
+Bag_Cost <- c(BagCost_0, BagCost_1,BagCost_2)
+
+AverageBagRevenue <- FirstBagCost*OneBagPercentage + SecondBagCost*TwoBagPercentage
+stddev_Bag_Revenue <- sd(Bag_Cost)
+
+OneHundred_TwentyPassengerRevenue <- AverageBagRevenue*120
+
+AverageBagRevenue
+stddev_Bag_Revenue
+OneHundred_TwentyPassengerRevenue
+```
+#a) 
+the average bag revenue per person is $12.70, the standard deviation of bag revenue per person is $14.1
+
+#b)
+The expected bag revenue for a 120 person flight would be $1524 with the same std dev as before
+
+
+#2.44
+#a)
+The distribtuion of personal income, seems to be a normal distribution with a slight right skew, most people fall between the 15,000 and 65,000 marks and there is a thicker tail above than below 
+
+#b)
+The probability that a randomly chosen person makes below $50,000 a year is 62.2%
+
+#c)
+assuming there is no dependency between gender and pay which I know isn't true but have to make in this situation the probabilty that a resident makes <$50,000 and is female is 25.5%
+
+#d)
+the assumption that I made in C is not valid because there is a dependency between gender and pay
+
+
