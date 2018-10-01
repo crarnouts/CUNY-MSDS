@@ -1,0 +1,83 @@
+---
+title: "Data 607 Week 5"
+author: "Corey Arnouts"
+date: "September 30, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Wrangling of the Flights Data
+
+##load in the neccssary Libraries
+```{r}
+library(stringr)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+##Construct the Initial Dataset
+```{r}
+#get the data from my github page
+Raw_text <- read.csv("https://raw.githubusercontent.com/crarnouts/CUNY-MSDS/master/Arrival_times_2.csv", header = TRUE)
+#turn all of the blanks into N/A or missing values
+is.na(Raw_text) <- Raw_text==''
+flights<-Raw_text
+#name the columns of the dataset 
+colnames(flights)[1:2] = c("Airline", "Status")
+#fill in the blanks of the airline column
+flights <- flights %>% fill(Airline)
+```
+
+##Summarize the proportion of flights by the airline and by whether or not the flight was on time
+```{r}
+flights.tidy <- gather(flights,"City","FlightCount",-Airline,-Status)
+#Summarize the number of flights by the airline
+flights.total <- flights.tidy %>% 
+  group_by(Airline) %>% 
+  summarise(flights = sum(FlightCount))
+#summarize the number of flights by the status of the flight
+flights.time <- flights.tidy %>% 
+  group_by(Status) %>% 
+  summarise(flights = sum(FlightCount))
+#Create proportions based off the above criteria
+flights.time$proportion <- flights.total$flights / sum(flights.total$flights)
+flights.total$proportion <- flights.total$flights / sum(flights.total$flights)
+
+```
+
+##Graphic Visualizations of the data
+```{r}
+#Graph the total flight count by airline
+ggplot(flights.total,aes(x=Airline,y=flights)) + 
+  geom_bar(stat="identity",color = "Yellow", fill = "Yellow") +
+  ggtitle("Flight Count by Airline") +
+  theme(plot.title = element_text(hjust = 0.5))
+#graph the status count of the flights
+ggplot(flights.time,aes(x=Status,y=flights)) + 
+  geom_bar(stat="identity",color = "Orange", fill = "Orange") +
+  ggtitle("Flight Count by Status") +
+  theme(plot.title = element_text(hjust = 0.5))
+#use the pipe operator to determine the total number of delayed flights by airline
+flights.delayed <- flights.tidy %>% 
+  group_by(Airline,Status) %>% 
+summarise(flights = sum(FlightCount)) %>% 
+filter(Status == "delayed ")
+#use the flights.delayed dataset to determine the proportion of on time and delayed flights by airline
+flights.total$delayed <- flights.delayed$flights
+flights.total$delayed_proportion <- flights.total$delayed / flights.total$flights
+flights.total$ontime_proportion <- 1 - flights.total$delayed_proportion
+
+#Graph the ontime proporation by airline
+ggplot(flights.total,aes(x=Airline,y=ontime_proportion)) + 
+  geom_bar(stat="identity",fill="Red") +
+  ggtitle("Proportion of On Time Flights by Airline ") +
+  ylab("proportion") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
