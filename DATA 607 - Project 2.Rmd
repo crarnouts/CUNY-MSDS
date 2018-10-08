@@ -1,0 +1,82 @@
+---
+title: "Project 2"
+author: "Corey Arnouts"
+date: "October 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Converting the Data from a Wide to a Long format
+Once I got ahold of the FIFA data I noticed that there was definitely opportunities to tidy up the data into a longer format, the problem with this dataset was that it was in a partially consolidated state when I got ahold of it with each row containing columns that displayed metrics not only for the current year put for the previous years also
+
+
+```{r cars}
+library(stringr)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+FIFA.df <- read.csv("https://raw.githubusercontent.com/crarnouts/CUNY-MSDS/master/FIFA_RANKING.csv", header = TRUE)
+colnames(FIFA.df)[7]<- "Current Year"
+colnames(FIFA.df)[9]<- "Last Year"
+colnames(FIFA.df)[11]<- "Two Years Ago"
+colnames(FIFA.df)[13]<- "Three Years Ago"
+
+
+
+#I want to consolidate all of the averages
+FIFA_gather<-gather(FIFA.df,Year,Average_Points,7,9,11,13)
+FIFA_gather<-gather(FIFA_gather,Year_2,Weighted_Average_Points,7,8,9)
+FIFA_gather$Year_2 <- NULL
+#This was my initial strategy to consolidate all of the averages and the weighted averages I was able to reduce the
+#the number of columns from 18 to 12 but then I discovered there was a better way to do it because of the way the data
+#was structed
+
+
+tail(FIFA.df)
+tail(FIFA_gather)
+
+```
+##Restructing the data in a different way
+I realized that there was a better way at going after the data that I wanted, I really just wanted to look at the historical point performance and ranking of the different teams so I figured out a way to widdle the data down to just this 
+```{r}
+#since the data was structured in an uneccessary way where each year there was a record of not only the team's
+#metrics for that year but also the team's metrics for previous years which is not valuable information because that historical data is already contained in previous rows 
+#An example would be the entry for germany in 2004 would also have their data for 2003,2002, and 2001 but we already have this data in other rows 
+
+#pulling out the year from the rank_date
+test_year<-substring(FIFA.df$rank_date,5,10)
+test_year_part_one<-str_sub(FIFA.df$rank_date,-2,-1)
+test_year_part_two<-str_sub(FIFA.df$rank_date,-4,-3)
+Year<-paste(test_year_part_two,test_year_part_one,sep = "")
+FIFA.df$Year<-Year
+
+#For every year but the current year I want to use the previous year point columns so that I'm sure that I am encapsulating
+#the entire year's worth of data
+FIFA.df$Year<-as.numeric(FIFA.df$Year)
+FIFA.df$Previous_Year<-FIFA.df$Year-1
+FIFA_2<- FIFA.df[c(1,2,3,4,5,6,7,8,9,10,15,17,18)]
+
+FIFA_Previous_Year<-FIFA_2[c(1,2,3,9,12)]
+colnames(FIFA_Previous_Year)[4]<-"Points"
+
+FIFA_Historical_Points<-FIFA_Previous_Year
+#This is the final dataset that I would run analysis againist
+FIFA_Historical_Points<- filter(FIFA_Historical_Points,Points!= 0)
+tail(FIFA_Historical_Points)
+```
+
+##High Level Analysis
+I was cuious as to the relationship between the points that the team had scored in the year compared to their ranking
+and at first the correlation was a weak negative correlation but then I decided to filter out the null or zero point totals and I found the results to be much more informative
+```{r}
+
+cor(FIFA_Historical_Points$rank,FIFA_Historical_Points$Points)
+ggplot(FIFA_Historical_Points, aes(x=rank, y=Points))+geom_point()
+#The correlation between the variables is much stronger once I filter out the zeroes
+```
+
