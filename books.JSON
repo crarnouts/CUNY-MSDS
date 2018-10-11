@@ -1,0 +1,30 @@
+{
+  "Mathematics Books":[
+    {
+      "title": "Calculus Eigth Edition",
+      "authors": "Ron Larson, Robert Hosteltler, Bruce Edwards",
+      "price": "$49.35",
+      "publisher": "Houghton Mifflin Company",
+      "publishedDate": "2006",
+      "type": "Hard Cover",
+      "isbn": "0618-50298-X"
+    },
+    {
+      "title": "Mathletics",
+      "authors": "John D. Barrow",
+      "price": "$9.99",
+      "publisher": "W.W.Norton & Company",
+      "publishedDate": "2012",
+      "type": "Paperback",
+      "isbn": "978-0-393-34550-6"
+    },
+    {
+      "title": "Quantitative Investment Analysis",
+      "authors": "Richard DeFusco, Dennis Mcleavey, Jerald Pinto, David Runkle",
+      "price": "$75.00",
+      "publisher": "CFA Institute",
+      "publishedDate": "2015",
+      "type": "Hard Cover",
+      "isbn": "978-1-119-10422-3"
+    }]
+}
