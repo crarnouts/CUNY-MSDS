@@ -1,0 +1,29 @@
+---
+title: "DATA 607 Web APIs"
+author: "Corey Arnouts"
+date: "October 28, 2018"
+output:
+  rmdformats::readthedown: default
+  html_document: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Connecting the NY Times API
+#Best Selling Books
+```{r}
+options(stringsAsFactors = FALSE)
+library(jsonlite)
+library(httr)
+library(DT)
+
+url <- "https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json"
+api.key <- readLines("https://raw.githubusercontent.com/crarnouts/CUNY-MSDS/master/NY_Times_API_Key")
+url <- paste0(url, '?api-key=', api.key)
+df <- fromJSON(url, flatten = TRUE)
+datatable(df$results)
+```
+
