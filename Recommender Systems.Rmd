@@ -1,0 +1,34 @@
+---
+title: "Recommender Systems Week 11"
+author: "Corey Arnouts"
+date: "November 10, 2018"
+output:
+  rmdformats::readthedown: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Discussion 11
+
+Youtube is the premier video sharing service in the world and has taken it's place amongst the most influential website's in the existence of the internet. There is everything from sports clips, documentaries, funny videos, informational videos. When you log on to youtube you see a list of recommended videos that are based on your previous viewing history
+
+
+
+![YouTube Recommender](youtube.PNG)
+ 
+#1.	Target Users
+The target users are the people that are viewing youtube, youtube wants you to be interested in the content on their site so they attempt to guide you by providing you with a list of videos that you are most likely to click based on theri recommendation system.
+
+#2.	Recommendation System
+Youtube ultimately want's to make money off of the viewers that are visiting their website they use the information gathered about users to make estimations about the type of products or services that they might be interested in, I'm assuming this is dynamic based on both the user and the video that the users is viewing, I know whenever I watch any videos on "motivation" or "success", I immediately get bombarded with advertisements about being a real estate agent, so apparently certain real estate brokers are looking to target people that are trying to find their path in life, which makes sense to me, but I have no interest in such careers. 
+#Links
+here are some links on how marketing campaigns are started on youtube and how content creators on youtube go about monetizing their videos:
+https://www.youtube.com/intl/en-GB/yt/advertise/resources/optimizing-your-video-marketing-campaigns/
+https://www.investopedia.com/articles/personal-finance/032615/how-youtube-ad-revenue-works.asp
+
+#3.	Improvements
+I suggest to make the advertisements more specific to the user as opposed to the video that they are placed on, youtube does a great job at figuring out what videos I want to watch but is limited in the ads that I receive watching those videos. Maybe also apply some broader categories, a lot of time I just get recommended videos that are from the same sources that I commonly watch, maybe if they applied some broader categories such as: "video games", or "mixed martial arts" (I'm sure they already do this to some degree) and then sent me the most popular videos of the day from those categories. Essientially youtube is creating a feedback loop they present me with the videos from the publishers that I watch the most and then I click on them because they are right there, and then those publishers just get even more heavily weighted. Where as there may be videos out there that I would be much more interested in that I would have to seek out. Youtube also seems to generate much of the recommended content off of what I have viewed in the past week or so, I commonly watch movie reviews on youtube and I don't see any of those kinds of videos listed. Maybe youtube should not so heavily weight the videos that I have viewed recently. Also I see videos on under recommended that I have already watched and I rarely rewatch I youtube videos.
