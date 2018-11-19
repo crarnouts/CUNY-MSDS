@@ -1,0 +1,132 @@
+---
+title: "Neo4j Graph Database"
+author: "Corey Arnouts"
+date: "November 5, 2018"
+output:
+  rmdformats::readthedown: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load data in R
+```{r}
+if (!require(nycflights13)) install.packages('nycflights13')
+library(nycflights13)
+
+flights.airlines <- airlines
+flights.airports <- airports
+flights.flights <- flights
+flights.planes <- planes
+flights.weather <- weather
+```
+#Write data to the correct folder
+```{r}
+#Set your working directory to the import folder of the database that you are working in
+
+setwd("C:/Users/qqz0117/.Neo4jDesktop/neo4jDatabases/database-a9875086-97f9-408e-b1fb-1ac28bb382ee/installation-3.4.9/import")
+
+flights.flights <- flights.flights[sample(nrow(flights.flights), 1000),]
+
+# Now time to write the dataframes into csv files and load them into the local directory
+if (!file.exists("airlines.csv"))
+  write.csv(flights.airlines, file = "airlines.csv")
+if (!file.exists("airports.csv"))
+  write.csv(flights.airports, file = "airports.csv")
+if (!file.exists("flights.csv"))
+  write.csv(flights.flights, file = "flights.csv")
+if (!file.exists("planes.csv"))
+  write.csv(flights.planes, file = "planes.csv")
+if (!file.exists("weather.csv"))
+  write.csv(flights.weather, file = "weather.csv")
+
+
+
+
+setwd("C:/Temp/R/CUNY DATA 607")
+```
+
+#Neo4j Code
+
+##Load Tables
+//Clear Existing nodes and relationship from database
+match (a) optional match (a)-[r]-() delete a,r;
+
+//LOAD airlines table
+LOAD CSV WITH HEADERS FROM "file:///airlines.csv" AS airlines
+CREATE (al: Airline {car_id: airlines.carrier, car_name: airlines.name});
+
+//LOAD airports table
+LOAD CSV WITH HEADERS FROM "file:///airports.csv" AS airports
+CREATE (ap: Airport {ap_id: airports.faa, ap_name: airports.name, lat:airports.lat, lon:airports.lon, alt: airports.alt, tz: airports.tz, dst: airports.dst});  
+
+//LOAD planes table
+LOAD CSV WITH HEADERS FROM "file:///planes.csv" AS planes
+CREATE(p: Plane {tailnum: planes.tailnum, prod_yr: planes.year, p_type: planes.type, mfr: planes.manufacturer, model: planes.model, num_engines: planes.engines, seats: planes.seats, speed:planes.speed, engine_typ: planes.engine}); 
+  
+//LOAD flights table
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+CREATE(f: Flight {year: flights.year, month: flights.month, day: flights.day, dep_time: flights.dep_time, arr_time: flights.arr_time, carrier: flights.carrier, flight_num: flights.flight, air_time: flights.air_time, distance: flights.distance, hour: flights.hour, minute: flights.minute});
+
+//LOAD weather table
+LOAD CSV WITH HEADERS FROM "file:///weather.csv" AS wth
+CREATE(w: Weather {year:wth.year, month: wth.month, day:wth.day, hour:wth.hour, origin:wth.origin, temp:wth.temp, dewp:wth.dewp, humid:wth.humid, wind_dir:wth.wind_dir, wind_speed:wth.wind_speed, wind_gust:wth.wind_gust, precip:wth.precip, pressure: wth.pressure, visib:wth.visib}); 
+
+##Define Relationships
+//Relate Flight to Airline Carrier
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+MATCH (a:Flight{carrier:flights.carrier})
+MATCH (b:Airline{car_id:flights.carrier})
+MERGE (a)-[r:IS_CARRIER]->(b);
+
+//Relate Flight to plane info
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+MATCH (a:Flight{flight_num:flights.flight, year:flights.year, month:flights.month, day:flights.day, dep_time:flights.dep_time, carrier:flights.carrier})
+MATCH (b:Plane{tailnum:flights.tailnum})
+MERGE (a)-[r:HAS_PLANE_INFO]->(b)
+
+//Relate Flight to arrival airport
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+MATCH (a:Flight{flight_num:flights.flight, year:flights.year, month:flights.month, day:flights.day, dep_time:flights.dep_time, carrier:flights.carrier})
+MATCH (b:Airport{ap_id:flights.dest})
+MERGE (a)-[r:ARRIVES{arr_delay:flights.arr_delay}]->(b)
+
+//Relate Flight to destination
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+MATCH (a:Flight{flight_num:flights.flight, year:flights.year, month:flights.month, day:flights.day, dep_time:flights.dep_time, carrier:flights.carrier})
+MATCH (b:Airport{ap_id:flights.origin})
+MERGE (a)-[r:LEAVES]->(b)
+
+//Relate flight departure to weather conditons
+LOAD CSV WITH HEADERS FROM "file:///flights.csv" AS flights
+MATCH (a:Flight{flight_num:flights.flight, year:flights.year, month:flights.month, day:flights.day, dep_time:flights.dep_time, carrier:flights.carrier})
+MATCH (b: Weather{year: flights.year, month: flights.month, day: flights.day, hour: flights.hour, origin:flights.origin})
+MERGE (a)-[r:HAS_WEATHER]->(b)
+
+#RNeo4j Package
+There was a working RNeo4j package so that R and and Neo4j could connect seemlessly but it appears this package has been taken down
+
+
+#Neo4j Graph Model
+MATCH p=()-[r:IS_CARRIER]->() RETURN p
+![Neo4j Graph Model](Neo4g.PNG)
+
+
+#Pros and Cons of Graph Databases
+##Pros
+
+1.NOSQL queries often execute much faster than those used in relational models, particularly compared to SQL databases with 20+ table joins.
+
+2.Data summaries and basic manipulations can often be achieved using significantly less code; so code readability is improved.
+
+3.NOSQL environments are not restricted to the rigid schema definitions imposed by typical RDMS models.
+
+##Cons
+
+1.Most software developers are comfortable working with SQL-based databases; however, there are far fewer individuals accustomed to working in NOSQL environments. This can be a problem for employers with immediate business needs.
+
+2.rigidity imposed by RDMS models is often seen as a positive for employers with transactional processes that require near-perfect accuracy. SQL-based systems are generally perceived as being superior to NOSQL models in this regard.
+
+
