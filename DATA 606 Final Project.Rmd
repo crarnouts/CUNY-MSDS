@@ -1,0 +1,530 @@
+---
+title: "DATA 606 Project"
+author: "Corey Arnouts"
+date: "December 12, 2018"
+output:
+  rmdformats::readthedown: default
+  html_document: default
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load Libraries
+```{r include=FALSE}
+
+library(knitr)
+library(reshape2)
+library(DT)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(openintro)
+library(ggvis)
+library(tidyr)
+library(DATA606)
+library(Hmisc)
+library(ggplot2)
+library(plotly)
+#Decision Tree of Everything
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)
+library(plotly)
+library(ggcorrplot)
+
+```
+
+#Introduction
+
+### Research question 
+My research question is to investigate the relationship between the amount that someone lifts and their age, bodyweight, and the other factors that are involved in this dataset. I want to detemine what variables are the most important determining factors when it comes to total Olympic lifting weight.
+
+
+### Cases 
+
+**What are the cases, and how many are there?**
+There are 52347 cases of lifting performances and these span many years and also many different locations,countries, indivividuals. They include the weight of the individual and what their lifting numbers where along with 
+plenty of other attributes about the person
+
+
+### Data collection 
+
+**Describe the method of data collection.**
+I found this data from a research paper that was conducted on the sinclair coefficient
+https://www.reddit.com/r/weightlifting/comments/6wjdxm/analysis_of_weightlifting_data/
+
+
+### Type of study 
+
+This is an observational study
+
+
+
+### Data Source 
+
+
+https://www.reddit.com/r/weightlifting/comments/6wjdxm/analysis_of_weightlifting_data/
+
+
+### Dependent Variable
+
+The response variable is the lifting numbers so both the snatch result and the clean and jerk result, the result that I will pay attention to the mostis the Total variable which is the two lift results added together.
+
+
+
+### Independent Variable
+
+Some of the quantitative variables are both bodyweight and age which can both have a tremendous effect on the lifting numbers of the individual, one qualitative variable is the location or country that the individual is from. Another variable that I am paying attention to is the gender of the lifters.
+
+
+###Independence of Cases
+I am assuming that each lifting record are independent of each other I think this is a fair assumption.
+
+
+
+#Data
+
+### Data Preparation
+Reorganizing the Locations to currently display where the competition took place, also cleaned up the age variable to remove faulty values
+I use the separate function to turn the event locaiton into Cities, Countries and also States where applicable
+
+```{r warning=FALSE}
+
+data <- read.csv("https://raw.githubusercontent.com/crarnouts/CUNY-MSDS/master/lifting_data.csv", header = TRUE)
+data$Event.Date.1 <- NULL
+data$Event.Year.1 <- NULL
+data <- data %>% filter(AGE<75)
+
+data <- data %>% separate(Event.Location, c("Country","City"),sep ="-")
+data$Country_2 <- data$Country
+data <- data %>% separate(Country_2, c("City_2","State"),sep =",")
+data$State[which(is.na(data$State))]<-0
+
+
+data$Country <- ifelse(data$State != 0, "USA",data$Country)
+data$City <- ifelse(data$State != 0, data$City_2,data$City)
+data$City_2 <- NULL
+data <- data[c(1,2,3,4,22,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21)]
+data$State <- ifelse(data$State == 0, NA,data$State)
+
+
+data$AGE <- as.numeric(data$AGE)
+data$Body.Weight_1 <- as.character(data$Body.Weight)
+data$Body.Weight_2 <- as.numeric(data$Body.Weight_1)
+data$Sinclair.Total <- as.numeric(data$Sinclair.Total)
+data$DOB <- as.Date(data$DOB)
+data <- filter(data, data$Total >0)
+
+
+dataset <- data
+data <- filter(data,data$Total > 0)
+data$bw <- data$Body.Weight_2*2.2
+data <- filter(data, data$bw > 0)
+
+
+data$Nation <- as.factor(data$Nation)
+data$Country <- as.factor(data$Country)
+data$Total <- data$Total*2.2
+
+data <- sample_n(data,10000)
+
+```
+
+
+
+#Exploratory Analysis
+
+One of my first throughts is that Body weight and gender were the biggest contributing factors so I wanted to do a regression of those variables and 
+the result was relatively similar to what I expected Males have a higher lifting total and as Bodyweight goes up the Total that someone lifts also goes up. In the graphs below I fit regression lines to age, bodyweight and date of birth
+```{r warning=FALSE}
+lift_pred<- lm(Total ~ Body.Weight_2 + Gender, data = data)
+summary(lift_pred)
+#multiLines(lift_pred)
+
+
+
+data_mult <- data[c(9,10,16,25)]
+
+
+data_mult2 = melt(data_mult, id.vars='Total')
+ggplot(data_mult2) +
+  geom_jitter(aes(value,Total, colour=variable),) + geom_smooth(aes(value,Total, colour=variable), method=lm, se=FALSE) + facet_wrap(~variable, scales="free_x") +
+  labs(x = "Variable", y = "Total")
+
+
+```
+
+
+
+
+
+```{r}
+
+data_2 <- data
+
+ggplot(data_2, aes(x=data$bw, y=data_2$Snatch.Result)) +
+    geom_point()
+
+ggplot(data_2, aes(x=data$bw, y=data_2$Clean...Jerk.Result)) +
+    geom_point()
+```
+
+
+
+#Summart Statistics
+
+```{r}
+ggplot(data, aes(x=data$AGE, y=data$Total, color = data$Country)) +
+    geom_point(shape=1)
+
+ggplot(data, aes(x=data$AGE, y=data$Total, color = data$Gender)) +
+    geom_point(shape=1)+
+  scale_colour_hue(l=50) + # Use a slightly darker palette than normal
+    geom_smooth(method=lm,   # Add linear regression lines
+                se=FALSE,    # Don't add shaded confidence region
+                fullrange=TRUE) # Extend regression lines
+
+```
+
+
+
+
+
+###Bodyweight and Gender are probably the two most significant attributes to estimating the total of someone's lifts
+Combined Bodyweight and Gender explain roughly 57% of the variance in the data
+```{r}
+
+lift_pred<- lm(Total ~ bw + Gender, data = data)
+summary(lift_pred)
+```
+
+##Decision Trees
+The decision tree displays the different factors that determine a personal overall lifting numbers. It shows specific groupings and displays the lifting metrics for those specific buckets.
+```{r}
+
+
+tree_data <- sample_n(data, 10000)
+tree_data$Event.Date <- NULL
+tree_data$Event.Year<- NULL
+tree_data$Event.Name<- NULL
+tree_data$Country<- NULL
+tree_data$State<- NULL
+tree_data$Name<- NULL
+tree_data$City<- NULL
+tree_data$Body.Weight<- NULL
+tree_data$Body.Weight_1<- NULL
+tree_data$Sinclair.Total<- NULL
+tree_data$Sinclair.Coefficient<- NULL
+tree_data$Sinclair.A<- NULL
+tree_data$Sinclair.b<- NULL
+tree_data$AX2<- NULL
+tree_data$X<- NULL
+tree_data$Clean...Jerk.Result<- NULL
+tree_data$Snatch.Result<- NULL
+tree_data$Nation<- NULL
+tree_data$Category<- NULL
+
+tree_data$Body.Weight_2 <- NULL
+
+form <- as.formula(Total ~ .)
+
+# A fast plot													
+decision_tree <- fancyRpartPlot(rpart(form,tree_data),caption ="Olympic Lifting Totals in lbs by Attributes")
+```
+
+#Boxplot of the different categorical variables
+Looking at the strenght of men compared to women and also relative strenght of men vs women, to take the bodyweight component out of it 
+```{r}
+p <- ggplot(data, aes(x=Gender, y=Total)) + 
+  geom_boxplot()
+p
+
+#look at strenght to weight ration for males vs females
+
+data$rel_str <- (data$Total/data$bw)/2
+
+p <- ggplot(data, aes(x=Gender, y=rel_str)) + 
+  geom_boxplot()
+p
+
+
+```
+
+
+#Inference
+
+##signifigance of Age Variable
+\[ H_0:\]
+There is no relationship between age and the amount that someone lifts 
+\[ H_A:\]
+There is a relationship between age and the amount that someone lifts
+
+
+```{r}
+#Look at the Relationship Between Age and Total 
+Age_model <- lm(Total ~ AGE, data = data)
+summary(Age_model)
+
+p <- ggplot(data = data, aes(x=AGE, y=Total)) +
+    geom_point(shape=1) +    # Use hollow circles
+    geom_smooth(method=lm)   # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+
+p
+```
+Since the p-value is virtually zero we can conclude that the Relationship is indeed significant
+###Linear Regression Relationsip
+\[
+  \hat{total} = 236.7 + 12.3844 * Age(years)
+\]
+
+##Signifigance of Body Weight Variable
+\[ H_0:\]
+There is no relationship between Body Weight and the amount that someone lifts 
+\[ H_A:\]
+There is a relationship between Body Weight and the amount that someone lifts
+```{r}
+#Look at the Relationship Between Age and Total 
+bw_model <- lm(Total ~ bw, data = data)
+summary(Age_model)
+
+p <- ggplot(data = data, aes(x=bw, y=Total)) +
+    geom_point(shape=1) +    # Use hollow circles
+    geom_smooth(method=lm)   # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+
+p
+```
+Since the p-value is virtually zero we can conclude that the Relationship is indeed significant
+###Linear Regression Relationsip
+\[
+  \hat{total} = 105.66 + 2.414 * Bodyweight(lbs)
+\]
+
+
+##Polynomial Regresssion
+
+
+###Looking at the age variable with polynomial regression
+```{r}
+
+#Logistic Regression using Age as the Primary variable
+
+fit <- lm(Total ~ AGE + I(AGE^2) + I(AGE^3), data = data)
+prd <- data.frame(AGE = seq(from = range(data$AGE)[1], to = range(data$AGE)[2], length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+p <- ggplot(prd, aes(x = AGE, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = data, aes(x = AGE, y = Total))
+
+ggplotly(p)
+```
+
+###Looking at the bodyweight variable with polynomial regression
+```{r}
+fit <- lm(Total ~ bw + I(bw^2) + I(bw^3), data = data)
+prd <- data.frame(bw = seq(from = range(data$bw)[1], to = range(data$bw)[2], length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+p1 <- 
+  ggplot(prd, aes(x = bw, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = data, aes(x = bw, y = Total))
+
+
+ggplotly(p1)
+
+
+
+```
+
+##Linear vs Polynomial Regression
+###BodyWeight Models
+```{r}
+summary(fit)
+summary(bw_model)
+plot(fit$residuals ~ data$bw)
+abline(h = 0, lty = 3) 
+plot(bw_model$residuals ~ data$bw)
+abline(h = 0, lty = 3) 
+```
+
+###Linear vs Polynomial Models
+I did a comparsion of the linear regression compared to the polynomial regression for the BodyWeight variable and the standard error went down from 131.2 to 125.2 
+and the R squared went up from .42 to .48, Meaning that the polynomial regression better described the data
+
+
+
+
+##Combining the BodyWeight and Age Features to Make a better Predictor
+
+##Feature Scaling and Combine Variables
+```{r}
+#find the average for each of the variables
+mean_age <- mean(data$AGE)
+mean_bw <- mean(data$bw)
+
+min_age <- min(data$AGE)
+min_bw <- min(data$bw)
+
+max_age <- max(data$AGE)
+max_bw <- max(data$bw)
+
+
+#create adjusted features 
+data$bw_adj <- (data$bw - mean_bw)/(max_bw - min_bw)
+data$age_adj <- (data$AGE - mean_age)/(max_age - min_age)
+
+#combine the features into a sinlge variable
+data$bw_age <- data$bw_adj + data$age_adj
+
+
+
+bw_age_model <- lm(Total ~ bw_age, data = data)
+summary(bw_age_model)
+
+p <- ggplot(data = data, aes(x=bw_age, y=Total)) +
+    geom_point(shape=1) +    # Use hollow circles
+    geom_smooth(method=lm)   # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+
+p
+
+```
+
+
+###Polynomial Model for combined Variable
+```{r}
+fit <- lm(Total ~ bw_age + I(bw_age^2) + I(bw_age^3), data = data)
+prd <- data.frame(bw_age = seq(from = range(data$bw_age)[1], to = range(data$bw_age)[2], length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+p1 <- 
+  ggplot(prd, aes(x = bw_age, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = data, aes(x = bw_age, y = Total))
+
+
+ggplotly(p1)
+```
+###How close was the Polynomial Model that used a combined feature
+
+```{r}
+summary(fit)
+plot(fit$residuals ~ data$bw)
+abline(h = 0, lty = 3) 
+```
+
+
+###What if we just look at Males
+```{r}
+
+male_data <- filter(data, data$Gender == "Male")
+
+fit <- lm(Total ~ bw_age + I(bw_age^2) + I(bw_age^3), data = male_data)
+prd <- data.frame(bw_age = seq(from = range(male_data$bw_age)[1], to = range(male_data$bw_age)[2], length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+p1 <- 
+  ggplot(prd, aes(x = bw_age, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = male_data, aes(x = bw_age, y = Total))
+
+
+ggplotly(p1)
+```
+###Let's Look at the Residuals for the combined feature Polynomial Regression predictor 
+The results below are really Interesting because the standard error is relatively small and the R-squared value is almost .6
+meaning that 60% of the variance in a man's ability to lift can be explained by their age and their bodyweight. This is also interesting because this means
+there a lot more variables out there that we don't have access to, that potentially explain why some men lift more than others. The correlation between bw_age and total lifts for men is 74%
+```{r}
+summary(fit)
+plot(fit$residuals ~ male_data$bw_age)
+abline(h = 0, lty = 3) 
+cor(male_data$bw_age,male_data$Total)
+```
+###What if we just look at females
+```{r}
+female_data <- filter(data, data$Gender == "Female")
+
+fit <- lm(Total ~ bw_age + I(bw_age^2) + I(bw_age^3), data = female_data)
+prd <- data.frame(bw_age = seq(from = range(female_data$bw_age)[1], to = range(female_data$bw_age)[2], length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+p1 <- 
+  ggplot(prd, aes(x = bw_age, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = female_data, aes(x = bw_age, y = Total))
+
+
+ggplotly(p1)
+```
+
+###How well does the bw_age polynomial regression predictor work for females?
+The results below are interesting because the R squared for this model is only .42 which means that only 42% of variance in lifting numbers can be explained by 
+age and bodyweight for women, while this number was 60% for men, meaning that men. Comparatively also the correlation between bw_age and total lifts for women is .6 while for men it is .74,
+```{r}
+summary(fit)
+plot(fit$residuals ~ female_data$bw_age)
+abline(h = 0, lty = 3) 
+cor(female_data$bw_age, female_data$Total)
+```
+
+```{r}
+#Run a Full Model
+lift_full <- lm(Total ~ Gender + bw_age + Category + DOB, data = data)
+summary(lift_full)
+
+```
+
+
+
+#Conclusion
+In Conclusion the most important variables were very similar to what I predicted, Bodyweight, Gender, and Age are the most important factors in determining what someone's lifting capabilities are.
+
+I discovered that Polynomial models are better at predicting outcomes than Linear Models
+
+I also did some backward elimination to find that that Gender, age, date of birth, and sometimes Category/Nation are the only relevant or significant variables in my dataset that can accurately predict how much a certain lifter can lift
